@@ -34,7 +34,7 @@ Each ant follows a **Finite State Machine**:
 | Explore | Wander randomly | Finds food → Collect |
 | Collect | Pick up food | Food gathered → ReturnToNest |
 | ReturnToNest | Bring food home | At nest → Deposit |
-| Deposit | Drop food | Done → Explore |
+| Deposit | Drop food | Done → Explore | 
 | Attack | Engage enemy | Enemy gone → Explore |
 | Dead | Lifespan ended | Removed from world |
 
@@ -61,7 +61,7 @@ Each ant follows a **Finite State Machine**:
 - Total ants  
 - Stored food  
 - Recent births  
-
+ 
 ---
 
 ###  D. Movement & Pheromone System
