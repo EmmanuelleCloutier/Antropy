@@ -6,7 +6,7 @@ Observe, tweak, and study emergent AI behavior — no direct control, only natur
 ---
 
 ##  1. Project Goal  
-
+ 
 Create an **autonomous simulation** of an ant colony in a natural environment.  
 The player **observes** the colony’s growth and interactions:
 - Ants explore, collect food, defend the nest, and reproduce.
