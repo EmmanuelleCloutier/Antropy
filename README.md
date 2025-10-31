@@ -5,8 +5,8 @@ Observe, tweak, and study emergent AI behavior — no direct control, only natur
 
 ---
 
-##  1. Project Goal
-
+##  1. Project Goal  
+ 
 Create an **autonomous simulation** of an ant colony in a natural environment.  
 The player **observes** the colony’s growth and interactions:
 - Ants explore, collect food, defend the nest, and reproduce.
@@ -34,7 +34,7 @@ Each ant follows a **Finite State Machine**:
 | Explore | Wander randomly | Finds food → Collect |
 | Collect | Pick up food | Food gathered → ReturnToNest |
 | ReturnToNest | Bring food home | At nest → Deposit |
-| Deposit | Drop food | Done → Explore |
+| Deposit | Drop food | Done → Explore | 
 | Attack | Engage enemy | Enemy gone → Explore |
 | Dead | Lifespan ended | Removed from world |
 
@@ -61,7 +61,7 @@ Each ant follows a **Finite State Machine**:
 - Total ants  
 - Stored food  
 - Recent births  
-
+ 
 ---
 
 ###  D. Movement & Pheromone System
