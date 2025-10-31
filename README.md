@@ -1,4 +1,4 @@
-# 🐜 Ant Colony Simulator – Godot + C#
+# 🐜 Ant Colony Simulator – Godot C#
 
 ### A self-organizing ant colony simulation built with **Godot Engine (C#)**  
 Observe, tweak, and study emergent AI behavior — no direct control, only nature evolving.
