@@ -4,7 +4,7 @@
 Observe, tweak, and study emergent AI behavior — no direct control, only nature evolving.
 
 ---
-
+ 
 ##  1. Project Goal  
  
 Create an **autonomous simulation** of an ant colony in a natural environment.  
