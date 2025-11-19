@@ -36,7 +36,9 @@ animations = [{
 size = Vector2(84, 46)
 
 [node name="CharacterBody2D" type="CharacterBody2D"]
+scale = Vector2(0.05, 0.05)
 script = ExtResource("1_dg6b1")
+speed = 100.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -26.5)

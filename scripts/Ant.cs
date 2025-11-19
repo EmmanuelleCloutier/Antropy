@@ -1,4 +1,5 @@
 using Godot;
+using System;
 
 public partial class Ant : CharacterBody2D
 {
@@ -12,15 +13,25 @@ public partial class Ant : CharacterBody2D
 		Mort
 	}
 
+	[Export] private float speed = 80f;
+
+	private AnimatedSprite2D anim;
+
 	private AntState currentState = AntState.Explore;
-	private Vector2 targetFoodPosition;
-	private Vector2 nestPosition;
-	private bool hasFood = false;
-	private float health = 10f;
+
+	private Vector2 wanderDirection;
+	private float wanderTimer = 0f;
+
+	public override void _Ready()
+	{
+		anim = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
+		PickNewWanderDirection();
+	}
 
 	public override void _PhysicsProcess(double delta)
 	{
 		ExecuteState(delta);
+		UpdateSpriteFlip();
 	}
 
 	private void ExecuteState(double delta)
@@ -31,46 +42,57 @@ public partial class Ant : CharacterBody2D
 				Wander(delta);
 				break;
 
-			case AntState.ChercheNourriture:
-				SeekFood(delta);
-				break;
-
-			case AntState.Transporte:
-				TransportFood(delta);
-				break;
-
-			case AntState.RetourAuNid:
-				ReturnToNest(delta);
-				break;
-
-			case AntState.Defense:
-				Defend(delta);
-				break;
-
 			case AntState.Mort:
 				Die();
 				break;
+
+			// Les autres états viendront plus tard
 		}
 	}
 
+	// -----------------------------
+	// RANDOM WANDER
+	// -----------------------------
 	private void Wander(double delta)
 	{
-		// Pour l'instant, la fourmi bouge aléatoirement
-		Velocity = (Vector2.Right.Rotated((float)GD.RandRange(0, 2 * Mathf.Pi))) * 50f;
+		wanderTimer -= (float)delta;
+
+		if (wanderTimer <= 0f)
+			PickNewWanderDirection();
+
+		Velocity = wanderDirection * speed;
 		MoveAndSlide();
+
+		if (!anim.IsPlaying())
+			anim.Play("walk");
 	}
-	
-	private void SetState(AntState newState)
+
+
+	private void PickNewWanderDirection()
 	{
-		currentState = newState;
+		wanderTimer = (float)GD.RandRange(1f, 2f);
+
+		wanderDirection = new Vector2(
+			(float)GD.RandRange(-1f, 1f),
+			(float)GD.RandRange(-1f, 1f)
+		).Normalized();
 	}
 
-	
-	private void SeekFood(double delta) { /* TODO */ }
-	private void PickupFood() { /* TODO */ }
-	private void ReturnToNest(double delta) { /* TODO */ }
-	private void TransportFood(double delta) { /* TODO */ }
-	private void Defend(double delta) { /* TODO */ }
-	private void Die() { QueueFree(); }
 
+	// -----------------------------
+	// FLIP DU SPRITE
+	// -----------------------------
+	private void UpdateSpriteFlip()
+	{
+		if (Velocity.X > 1f)
+			anim.FlipH = true;   // droite
+
+		else if (Velocity.X < -1f)
+			anim.FlipH = false;  // gauche
+	}
+
+	private void Die()
+	{
+		QueueFree();
+	}
 }
