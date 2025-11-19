@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://dlpogihrck58q"]
+
+[ext_resource type="PackedScene" uid="uid://bjl3dq11lk6b" path="res://scenes/ant.tscn" id="1_c08gf"]
+
+[node name="Game" type="Node2D"]
+scale = Vector2(10, 10)
+
+[node name="CharacterBody2D" parent="." instance=ExtResource("1_c08gf")]
+position = Vector2(56.3, 33)
+scale = Vector2(0.05, 0.05)

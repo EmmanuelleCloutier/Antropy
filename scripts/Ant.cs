@@ -13,6 +13,10 @@ public partial class Ant : CharacterBody2D
 	}
 
 	private AntState currentState = AntState.Explore;
+	private Vector2 targetFoodPosition;
+	private Vector2 nestPosition;
+	private bool hasFood = false;
+	private float health = 10f;
 
 	public override void _PhysicsProcess(double delta)
 	{
@@ -27,8 +31,24 @@ public partial class Ant : CharacterBody2D
 				Wander(delta);
 				break;
 
+			case AntState.ChercheNourriture:
+				SeekFood(delta);
+				break;
+
+			case AntState.Transporte:
+				TransportFood(delta);
+				break;
+
+			case AntState.RetourAuNid:
+				ReturnToNest(delta);
+				break;
+
+			case AntState.Defense:
+				Defend(delta);
+				break;
+
 			case AntState.Mort:
-				QueueFree();
+				Die();
 				break;
 		}
 	}
@@ -39,4 +59,18 @@ public partial class Ant : CharacterBody2D
 		Velocity = (Vector2.Right.Rotated((float)GD.RandRange(0, 2 * Mathf.Pi))) * 50f;
 		MoveAndSlide();
 	}
+	
+	private void SetState(AntState newState)
+	{
+		currentState = newState;
+	}
+
+	
+	private void SeekFood(double delta) { /* TODO */ }
+	private void PickupFood() { /* TODO */ }
+	private void ReturnToNest(double delta) { /* TODO */ }
+	private void TransportFood(double delta) { /* TODO */ }
+	private void Defend(double delta) { /* TODO */ }
+	private void Die() { QueueFree(); }
+
 }
