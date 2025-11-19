@@ -9,22 +9,23 @@
 position = Vector2(581, 321)
 rotation = 1.53598
 scale = Vector2(1, 1)
+zoom = Vector2(0.75, 0.75)
 script = ExtResource("2_ipywh")
 
 [node name="Ants" type="Node" parent="."]
 
 [node name="CharacterBody2D" parent="Ants" instance=ExtResource("1_c08gf")]
 position = Vector2(363, 236)
-scale = Vector2(0.5, 0.5)
+scale = Vector2(0.25, 0.25)
 
 [node name="CharacterBody2D2" parent="Ants" instance=ExtResource("1_c08gf")]
 position = Vector2(837, 493)
-scale = Vector2(0.5, 0.5)
+scale = Vector2(0.25, 0.25)
 
 [node name="CharacterBody2D3" parent="Ants" instance=ExtResource("1_c08gf")]
 position = Vector2(698, 151)
-scale = Vector2(0.5, 0.5)
+scale = Vector2(0.25, 0.25)
 
 [node name="CharacterBody2D4" parent="Ants" instance=ExtResource("1_c08gf")]
 position = Vector2(131, 544)
-scale = Vector2(0.5, 0.5)
+scale = Vector2(0.25, 0.25)
