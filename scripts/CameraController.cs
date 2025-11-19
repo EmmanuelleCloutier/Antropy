@@ -27,12 +27,13 @@ public override void _Ready()
 	// récupère tous les enfants (assume que ce sont des Node2D)
 	foreach (Node child in antsParent.GetChildren())
 	{
-		if (child is Node2D ant)
+		if (child is Ant ant)
 		{
 			ants.Add(ant);
 			GD.Print($"Fourmi ajoutée: {ant.Name}, position: {ant.GlobalPosition}");
 		}
 	}
+
 
 	GD.Print($"Total fourmis détectées: {ants.Count}");
 
