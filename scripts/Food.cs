@@ -1,23 +1,16 @@
 using Godot;
+using System;
 
 public partial class Food : Area2D
 {
-	[Signal]
-	public delegate void FoodEatenEventHandler(Food food);
+	public event Action<Food> FoodEaten;
 
-	public override void _Ready()
+	public void Eat()
 	{
-		// Connecte le signal BodyEntered de Area2D
-		BodyEntered += OnBodyEntered;
-	}
+		// Informe le manager
+		FoodEaten?.Invoke(this);
 
-	private void OnBodyEntered(Node body)
-	{
-		if (body is Ant)
-		{
-			GD.Print("Food mangée par une fourmi !");
-			EmitSignal(SignalName.FoodEaten, this);
-			QueueFree();
-		}
+		// Disparition visuelle
+		QueueFree();
 	}
 }

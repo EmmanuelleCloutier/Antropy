@@ -1,174 +1,210 @@
 using Godot;
-using System;
 
 public partial class Ant : CharacterBody2D
 {
 	public enum AntState
 	{
 		Wander,
-		ChercheNourriture,
-		Transporte,
-		Mort
+		GoToFood,
+		CarryFood,
+		InNest
 	}
 
 	[Export] private float speed = 80f;
+	[Export] private PackedScene foodOnBackScene;
+
+	private AnimatedSprite2D anim;
+	private NavigationAgent2D navAgent;
+	private CollisionShape2D myCollider;
+	private Area2D nest;
+	private Vector2 lastNestEntryPosition;
+
 	[Export] private TileMapLayer pheromoneLayer;
 	[Export] private Vector2I pheromoneAtlasCoords;
 
-	[Export] private NavigationAgent2D navAgent;
 
-	private AnimatedSprite2D anim;
-	private AntState currentState = AntState.Wander;
+	private AntState state = AntState.Wander;
 
-	private Vector2 wanderDirection;
-	private float wanderTimer = 0f;
+	private Vector2 wanderDir;
+	private float wanderTimer;
 
-	// Food / Targets
-	private Vector2 targetFoodPos;
-	private Vector2 nestPosition = new Vector2(600, 350);
+	private Food targetFood;
 	private bool hasFood = false;
+	private Node2D foodOnBack;
 
 	public override void _Ready()
 	{
 		anim = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
 		navAgent = GetNode<NavigationAgent2D>("NavAgent");
-		PickNewWanderDirection();
+		myCollider = GetNode<CollisionShape2D>("CollisionShape2D");
+
+		nest = GetTree().Root.GetNode<Area2D>("Game/Nest");
+
+		PickNewWander();
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-		ExecuteState(delta);
-		UpdateSpriteFlip();
-	}
-
-	private void ExecuteState(double delta)
-	{
-		switch (currentState)
+		switch (state)
 		{
 			case AntState.Wander:
 				Wander(delta);
-				CheckFoodNearby();
 				break;
 
-			case AntState.ChercheNourriture:
-				MoveWithAStar(delta);
-				break;
-
-			case AntState.Transporte:
-				TransportFood(delta);
-				break;
-
-			case AntState.Mort:
-				Die();
+			case AntState.GoToFood:
+			case AntState.CarryFood:
+				MoveAStar();
 				break;
 		}
 
+		MoveAndSlide();
+		FlipSprite();
 		LeaveTrail();
+
 	}
 
-	// -------------------- Wander aléatoire --------------------
-	private void Wander(double delta)
+	// ----------- Wander -----------
+	void Wander(double delta)
 	{
 		wanderTimer -= (float)delta;
-		if (wanderTimer <= 0f)
-			PickNewWanderDirection();
+		if (wanderTimer <= 0)
+			PickNewWander();
 
-		Velocity = wanderDirection * speed * 0.5f; // vitesse plus douce
-		MoveAndSlide();
+		Velocity = wanderDir * speed * 0.5f;
 
-		if (!anim.IsPlaying())
-			anim.Play("walk");
+		SearchFood();
 	}
 
-	private void PickNewWanderDirection()
+	void PickNewWander()
 	{
-		wanderTimer = (float)GD.RandRange(1f, 2f);
-		wanderDirection = new Vector2(
-			(float)GD.RandRange(-1f, 1f),
-			(float)GD.RandRange(-1f, 1f)
+		wanderTimer = (float)GD.RandRange(1, 2);
+		wanderDir = new Vector2(
+			(float)GD.RandRange(-1, 1),
+			(float)GD.RandRange(-1, 1)
 		).Normalized();
 	}
 
-	// -------------------- Détection de nourriture --------------------
-	private void CheckFoodNearby()
+	// ---------- Find food ----------
+	void SearchFood()
 	{
-		FoodSpawnManager manager = GetTree().Root.GetNode<FoodSpawnManager>("Game/FoodSpawnManager");
-		if (manager == null) return;
+		var manager = GetTree().Root.GetNode<FoodSpawnManager>("Game/FoodSpawnManager");
 
-		foreach (var foodPos in manager.GetFoodPositions())
+		foreach (var f in manager.GetFoods())
 		{
-			if (GlobalPosition.DistanceTo(foodPos) < 100f) // si proche de la food
+			if (f == null) continue;
+
+			if (GlobalPosition.DistanceTo(f.GlobalPosition) < 120)
 			{
-				GoToFood(foodPos);
+				targetFood = f;
+				navAgent.TargetPosition = targetFood.GlobalPosition;
+				state = AntState.GoToFood;
 				break;
 			}
 		}
 	}
 
-	// -------------------- A* vers la nourriture --------------------
-	private void MoveWithAStar(double delta)
+	// ---------- Movement ----------
+	void MoveAStar()
 	{
 		if (navAgent.IsNavigationFinished())
 		{
-			if (!hasFood)
+			if (state == AntState.GoToFood && targetFood != null)
 			{
-				hasFood = true;
-				currentState = AntState.Transporte;
+				PickFood();
 			}
 			return;
 		}
 
-		Vector2 nextPos = navAgent.GetNextPathPosition();
-		Vector2 dir = (nextPos - GlobalPosition).Normalized();
-
-		Velocity = dir * speed;
-		MoveAndSlide();
-
-		if (!anim.IsPlaying())
-			anim.Play("walk");
+		Vector2 next = navAgent.GetNextPathPosition();
+		Velocity = (next - GlobalPosition).Normalized() * speed;
 	}
 
-	public void GoToFood(Vector2 foodPos)
+	void PickFood()
 	{
-		targetFoodPos = foodPos;
-		navAgent.TargetPosition = targetFoodPos;
-		currentState = AntState.ChercheNourriture;
-	}
-
-	private void TransportFood(double delta)
-	{
-		navAgent.TargetPosition = nestPosition;
-		MoveWithAStar(delta);
-
-		if (GlobalPosition.DistanceTo(nestPosition) < 10f)
+		if (targetFood == null || !IsInstanceValid(targetFood))
 		{
-			hasFood = false;
-			currentState = AntState.Wander;
-		}
-	}
-
-	private void LeaveTrail()
-	{
-		if (pheromoneLayer == null)
+			state = AntState.Wander;
 			return;
+		}
 
-		Vector2 localPos = pheromoneLayer.ToLocal(GlobalPosition);
-		Vector2I cell = pheromoneLayer.LocalToMap(localPos);
+		hasFood = true;
+		targetFood.Eat();
+		targetFood = null;
 
-		pheromoneLayer.SetCell(cell, 0, pheromoneAtlasCoords, 0);
-		pheromoneLayer.UpdateInternals();
+		AttachFoodVisual();
+
+		navAgent.TargetPosition = nest.GlobalPosition;
+		state = AntState.CarryFood;
+	}
+	
+private void LeaveTrail()
+{
+	if (pheromoneLayer == null)
+		return;
+
+	// Transforme la position globale de la fourmi en coordonnées locales du TileMapLayer
+	Vector2 localPos = pheromoneLayer.GlobalTransform.AffineInverse() * GlobalPosition;
+	Vector2I cell = pheromoneLayer.LocalToMap(localPos);
+
+	// Pose la phéromone
+	pheromoneLayer.SetCell(cell, 0, pheromoneAtlasCoords, 0);
+}
+
+
+
+
+	// ---------- Called by Nest ----------
+	public bool HasFood() => hasFood;
+
+	public void OnReachNest()
+	{
+		if (!hasFood) return;
+
+		lastNestEntryPosition = GlobalPosition; // ✅ sauvegarde
+
+		state = AntState.InNest;
+
+		Velocity = Vector2.Zero;
+		myCollider.Disabled = true;
+		Visible = false;
 	}
 
-	private void UpdateSpriteFlip()
+
+
+	public void DropFood()
 	{
-		if (Velocity.X > 1f)
-			anim.FlipH = true;
-		else if (Velocity.X < -1f)
-			anim.FlipH = false;
+		if (foodOnBack != null && IsInstanceValid(foodOnBack))
+			foodOnBack.QueueFree();
+
+		foodOnBack = null;
+		hasFood = false;
 	}
 
-	private void Die()
+	public void ExitNest()
 	{
-		QueueFree();
+		myCollider.Disabled = false;
+		Visible = true;
+
+		GlobalPosition = lastNestEntryPosition; // ✅ même spot
+
+		state = AntState.Wander;
+		PickNewWander();
+	}
+
+
+	// ---------- Visual ----------
+	void AttachFoodVisual()
+	{
+		if (foodOnBackScene == null) return;
+
+		foodOnBack = foodOnBackScene.Instantiate<Node2D>();
+		AddChild(foodOnBack);
+		foodOnBack.Position = new Vector2(0, -10);
+	}
+
+	void FlipSprite()
+	{
+		if (Velocity.X > 1) anim.FlipH = true;
+		if (Velocity.X < -1) anim.FlipH = false;
 	}
 }

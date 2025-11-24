@@ -3,61 +3,41 @@ using System.Collections.Generic;
 
 public partial class CameraController : Camera2D
 {
-	private List<Node2D> ants = new List<Node2D>();
+	private List<Ant> ants = new List<Ant>();
 	private int currentIndex = 0;
-	private bool initialized = false; // flag pour le focus initial
 
-public override void _Ready()
-{
-	MakeCurrent(); // active cette caméra
-
-	// récupère le node parent (Game) puis cherche Ants
-	Node antsParent = GetParent().GetNode("Ants");
-
-	if (antsParent == null)
+	public override void _Ready()
 	{
-		GD.PrintErr("Le node 'Ants' n'a pas été trouvé !");
-		return;
-	}
-	else
-	{
-		GD.Print($"Node 'Ants' trouvé : {antsParent.Name}");
-	}
+		MakeCurrent(); // active cette caméra
 
-	// récupère tous les enfants (assume que ce sont des Node2D)
-	foreach (Node child in antsParent.GetChildren())
-	{
-		if (child is Ant ant)
+		Node antsParent = GetParent().GetNode("Ants");
+		if (antsParent == null)
 		{
-			ants.Add(ant);
-			GD.Print($"Fourmi ajoutée: {ant.Name}, position: {ant.GlobalPosition}");
+			GD.PrintErr("Le node 'Ants' n'a pas été trouvé !");
+			return;
 		}
+
+		foreach (Node child in antsParent.GetChildren())
+		{
+			if (child is Ant ant)
+				ants.Add(ant);
+		}
+
+		if (ants.Count > 0)
+			GlobalPosition = ants[0].GlobalPosition;
 	}
-
-
-	GD.Print($"Total fourmis détectées: {ants.Count}");
-
-	if (ants.Count > 0)
-		GlobalPosition = ants[0].GlobalPosition;
-}
-
-
-
 
 	public override void _PhysicsProcess(double delta)
 	{
 		if (ants.Count == 0)
 			return;
 
-		// focus initial sur la première fourmi
-		if (!initialized)
+		// Vérifie si la fourmi actuelle est toujours visible
+		if (!ants[currentIndex].Visible || !IsInstanceValid(ants[currentIndex]))
 		{
-			GlobalPosition = ants[0].GlobalPosition;
-			GD.Print($"Caméra focus initial sur: {ants[0].Name} à {ants[0].GlobalPosition}");
-			initialized = true;
+			SwitchToNextActiveAnt();
 		}
 
-		// suit la fourmi actuelle en continu
 		GlobalPosition = ants[currentIndex].GlobalPosition;
 	}
 
@@ -67,20 +47,25 @@ public override void _Ready()
 			&& mouseEvent.Pressed
 			&& mouseEvent.ButtonIndex == MouseButton.Left)
 		{
-			SwitchAnt();
+			SwitchToNextActiveAnt();
 		}
 	}
 
-	private void SwitchAnt()
+	private void SwitchToNextActiveAnt()
 	{
 		if (ants.Count == 0)
-		{
-			GD.Print("Aucune fourmi à switcher !");
 			return;
-		}
 
-		currentIndex = (currentIndex + 1) % ants.Count;
-		GlobalPosition = ants[currentIndex].GlobalPosition;
-		GD.Print($"Changement de fourmi : {ants[currentIndex].Name} à {ants[currentIndex].GlobalPosition}");
+		int startIndex = currentIndex;
+		do
+		{
+			currentIndex = (currentIndex + 1) % ants.Count;
+		}
+		while ((!ants[currentIndex].Visible || !IsInstanceValid(ants[currentIndex])) 
+			   && currentIndex != startIndex);
+
+		// Si aucune fourmi visible, reste sur celle actuelle
+		if (ants[currentIndex].Visible && IsInstanceValid(ants[currentIndex]))
+			GlobalPosition = ants[currentIndex].GlobalPosition;
 	}
 }
