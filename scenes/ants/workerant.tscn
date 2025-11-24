@@ -1,19 +1,18 @@
-[gd_scene load_steps=9 format=3 uid="uid://bjl3dq11lk6b"]
+[gd_scene load_steps=8 format=3 uid="uid://bc1u1upirmkf5"]
 
-[ext_resource type="Script" path="res://scripts/Ant.cs" id="1_dg6b1"]
-[ext_resource type="PackedScene" uid="uid://ddi1xw7jvn685" path="res://scenes/food.tscn" id="2_h8hgs"]
-[ext_resource type="Texture2D" uid="uid://bo7wgxx2sov1g" path="res://assets/Ants.png" id="2_q2j4d"]
+[ext_resource type="Script" path="res://scripts/ants/WorkerAnt.cs" id="1_tpyue"]
+[ext_resource type="Texture2D" uid="uid://bo7wgxx2sov1g" path="res://assets/Ants.png" id="3_aro6g"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_5c5bh"]
-atlas = ExtResource("2_q2j4d")
+atlas = ExtResource("3_aro6g")
 region = Rect2(0, 109, 90, 109)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_t5ovj"]
-atlas = ExtResource("2_q2j4d")
+atlas = ExtResource("3_aro6g")
 region = Rect2(90, 109, 90, 109)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_21egh"]
-atlas = ExtResource("2_q2j4d")
+atlas = ExtResource("3_aro6g")
 region = Rect2(180, 109, 90, 109)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_lduwd"]
@@ -37,11 +36,10 @@ animations = [{
 size = Vector2(84, 46)
 
 [node name="Ant" type="CharacterBody2D"]
-scale = Vector2(0.05, 0.05)
+scale = Vector2(0.25, 0.25)
 collision_mask = 0
-script = ExtResource("1_dg6b1")
-speed = 100.0
-foodOnBackScene = ExtResource("2_h8hgs")
+script = ExtResource("1_tpyue")
+speed = 80.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -26.5)

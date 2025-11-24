@@ -1,11 +1,13 @@
-[gd_scene load_steps=14 format=3 uid="uid://dlpogihrck58q"]
+[gd_scene load_steps=16 format=3 uid="uid://dlpogihrck58q"]
 
-[ext_resource type="PackedScene" uid="uid://bjl3dq11lk6b" path="res://scenes/ant.tscn" id="1_c18sl"]
+[ext_resource type="PackedScene" uid="uid://bjl3dq11lk6b" path="res://scenes/ants/ant.tscn" id="1_c18sl"]
 [ext_resource type="Script" path="res://scripts/CameraController.cs" id="2_t1gth"]
 [ext_resource type="Texture2D" uid="uid://uwbnodaq4afl" path="res://assets/GRASS+.png" id="3_7w0mj"]
 [ext_resource type="Script" path="res://scripts/Managers/FoodSpawnManager.cs" id="4_neot7"]
 [ext_resource type="Script" path="res://scripts/Nest.cs" id="5_mxj55"]
 [ext_resource type="PackedScene" uid="uid://ddi1xw7jvn685" path="res://scenes/food.tscn" id="5_rdmnu"]
+[ext_resource type="Script" path="res://scripts/Managers/AntSpawnManager.cs" id="7_u26l2"]
+[ext_resource type="PackedScene" uid="uid://bc1u1upirmkf5" path="res://scenes/ants/workerant.tscn" id="8_reaiy"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_vsnb8"]
 texture = ExtResource("3_7w0mj")
@@ -728,24 +730,6 @@ radius = 3.34996
 
 [node name="Ants" type="Node" parent="."]
 
-[node name="CharacterBody2D" parent="Ants" node_paths=PackedStringArray("pheromoneLayer") instance=ExtResource("1_c18sl")]
-position = Vector2(555, 236)
-scale = Vector2(0.25, 0.25)
-pheromoneLayer = NodePath("../../Pheromones")
-pheromoneAtlasCoords = Vector2i(5, 7)
-
-[node name="CharacterBody2D2" parent="Ants" node_paths=PackedStringArray("pheromoneLayer") instance=ExtResource("1_c18sl")]
-position = Vector2(525, 293)
-scale = Vector2(0.25, 0.25)
-pheromoneLayer = NodePath("../../Pheromones")
-pheromoneAtlasCoords = Vector2i(5, 7)
-
-[node name="CharacterBody2D3" parent="Ants" node_paths=PackedStringArray("pheromoneLayer") instance=ExtResource("1_c18sl")]
-position = Vector2(480, 344)
-scale = Vector2(0.25, 0.25)
-pheromoneLayer = NodePath("../../Pheromones")
-pheromoneAtlasCoords = Vector2i(5, 7)
-
 [node name="CharacterBody2D4" parent="Ants" node_paths=PackedStringArray("pheromoneLayer") instance=ExtResource("1_c18sl")]
 position = Vector2(639, 236)
 scale = Vector2(0.25, 0.25)
@@ -757,7 +741,6 @@ pheromoneAtlasCoords = Vector2i(5, 7)
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(600, 325)
 rotation = 1.53598
-zoom = Vector2(2, 2)
 script = ExtResource("2_t1gth")
 
 [node name="TileMap" type="TileMap" parent="."]
@@ -771,9 +754,9 @@ tile_set = SubResource("TileSet_x68w1")
 [node name="FoodSpawnManager" type="Node2D" parent="."]
 script = ExtResource("4_neot7")
 foodScene = ExtResource("5_rdmnu")
-maxFood = 15
+maxFood = 30
 spawnMin = Vector2(-250, -250)
-spawnMax = Vector2(1000, 600)
+spawnMax = Vector2(500, 500)
 
 [node name="NavigationRegion2D" type="NavigationRegion2D" parent="."]
 visible = false
@@ -788,3 +771,9 @@ texture = SubResource("AtlasTexture_rrrgs")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Nest"]
 shape = SubResource("CircleShape2D_yb4q4")
+
+[node name="AntSpawnManager" type="Node2D" parent="." node_paths=PackedStringArray("pheromoneLayer", "nest")]
+script = ExtResource("7_u26l2")
+antScene = ExtResource("8_reaiy")
+pheromoneLayer = NodePath("../Pheromones")
+nest = NodePath("../Nest")

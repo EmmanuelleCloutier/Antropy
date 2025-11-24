@@ -46,8 +46,6 @@ public partial class FoodSpawnManager : Node2D
 
 	private void OnFoodEaten(Food food)
 	{
-		GD.Print("Food eaten detected by manager");
-
 		if (foods.Contains(food))
 			foods.Remove(food);
 

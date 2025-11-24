@@ -8,36 +8,36 @@ public partial class CameraController : Camera2D
 
 	public override void _Ready()
 	{
-		MakeCurrent(); // active cette caméra
+		MakeCurrent();
 
-		Node antsParent = GetParent().GetNode("Ants");
-		if (antsParent == null)
+		// Récupère toutes les fourmis déjà existantes dans le groupe "Ants"
+		var nodesInGroup = GetTree().GetNodesInGroup("Ants");
+		foreach (var node in nodesInGroup)
 		{
-			GD.PrintErr("Le node 'Ants' n'a pas été trouvé !");
-			return;
-		}
-
-		foreach (Node child in antsParent.GetChildren())
-		{
-			if (child is Ant ant)
+			if (node is Ant ant)
 				ants.Add(ant);
 		}
+
+		// Connecte le signal pour détecter les nouvelles fourmis spawnées après
+		var manager = GetTree().Root.GetNode<AntSpawnManager>("Game/AntSpawnManager");
+		if (manager != null)
+			manager.Connect("AntSpawned", new Callable(this, "OnAntSpawned"));
 
 		if (ants.Count > 0)
 			GlobalPosition = ants[0].GlobalPosition;
 	}
 
+	private void OnAntSpawned(Ant ant)
+	{
+		if (ant != null)
+			ants.Add(ant);
+	}
+
 	public override void _PhysicsProcess(double delta)
 	{
-		if (ants.Count == 0)
-			return;
-
-		// Vérifie si la fourmi actuelle est toujours visible
+		if (ants.Count == 0) return;
 		if (!ants[currentIndex].Visible || !IsInstanceValid(ants[currentIndex]))
-		{
 			SwitchToNextActiveAnt();
-		}
-
 		GlobalPosition = ants[currentIndex].GlobalPosition;
 	}
 
@@ -53,18 +53,16 @@ public partial class CameraController : Camera2D
 
 	private void SwitchToNextActiveAnt()
 	{
-		if (ants.Count == 0)
-			return;
+		if (ants.Count == 0) return;
 
 		int startIndex = currentIndex;
 		do
 		{
 			currentIndex = (currentIndex + 1) % ants.Count;
 		}
-		while ((!ants[currentIndex].Visible || !IsInstanceValid(ants[currentIndex])) 
+		while ((!ants[currentIndex].Visible || !IsInstanceValid(ants[currentIndex]))
 			   && currentIndex != startIndex);
 
-		// Si aucune fourmi visible, reste sur celle actuelle
 		if (ants[currentIndex].Visible && IsInstanceValid(ants[currentIndex]))
 			GlobalPosition = ants[currentIndex].GlobalPosition;
 	}

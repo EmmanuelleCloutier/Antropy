@@ -1,0 +1,57 @@
+[gd_scene load_steps=9 format=3 uid="uid://bjl3dq11lk6b"]
+
+[ext_resource type="Script" path="res://scripts/ants/Ant.cs" id="1_dg6b1"]
+[ext_resource type="PackedScene" uid="uid://ddi1xw7jvn685" path="res://scenes/food.tscn" id="2_h8hgs"]
+[ext_resource type="Texture2D" uid="uid://bo7wgxx2sov1g" path="res://assets/Ants.png" id="2_q2j4d"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5c5bh"]
+atlas = ExtResource("2_q2j4d")
+region = Rect2(0, 109, 90, 109)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_t5ovj"]
+atlas = ExtResource("2_q2j4d")
+region = Rect2(90, 109, 90, 109)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_21egh"]
+atlas = ExtResource("2_q2j4d")
+region = Rect2(180, 109, 90, 109)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_lduwd"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5c5bh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t5ovj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_21egh")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 10.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1gnvd"]
+size = Vector2(84, 46)
+
+[node name="Ant" type="CharacterBody2D"]
+scale = Vector2(0.05, 0.05)
+collision_mask = 0
+script = ExtResource("1_dg6b1")
+foodOnBackScene = ExtResource("2_h8hgs")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -26.5)
+sprite_frames = SubResource("SpriteFrames_lduwd")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -22.5)
+shape = SubResource("RectangleShape2D_1gnvd")
+
+[node name="NavAgent" type="NavigationAgent2D" parent="."]
+path_desired_distance = 4.0
+target_desired_distance = 4.0

@@ -1,4 +1,5 @@
 using Godot;
+using System.Threading.Tasks;
 
 public partial class Nest : Area2D
 {
@@ -14,11 +15,14 @@ public partial class Nest : Area2D
 		if (body is not Ant ant)
 			return;
 
+		// On ne s'occupe que des fourmis avec nourriture
 		if (!ant.HasFood())
 			return;
 
+		// Marque la fourmi comme dans le Nest
 		ant.OnReachNest();
 
+		// Attend un moment avant de la faire sortir
 		await ToSignal(GetTree().CreateTimer(waitTime), "timeout");
 
 		ant.DropFood();
