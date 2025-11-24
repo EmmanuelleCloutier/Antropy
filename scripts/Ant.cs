@@ -5,28 +5,33 @@ public partial class Ant : CharacterBody2D
 {
 	public enum AntState
 	{
-		Explore,
+		Wander,
 		ChercheNourriture,
 		Transporte,
-		RetourAuNid,
-		Defense,
 		Mort
 	}
 
 	[Export] private float speed = 80f;
 	[Export] private TileMapLayer pheromoneLayer;
-[Export] private Vector2I pheromoneAtlasCoords; // ex: (5,7)
+	[Export] private Vector2I pheromoneAtlasCoords;
 
+	[Export] private NavigationAgent2D navAgent;
 
 	private AnimatedSprite2D anim;
-	private AntState currentState = AntState.Explore;
+	private AntState currentState = AntState.Wander;
 
 	private Vector2 wanderDirection;
 	private float wanderTimer = 0f;
 
+	// Food / Targets
+	private Vector2 targetFoodPos;
+	private Vector2 nestPosition = new Vector2(600, 350);
+	private bool hasFood = false;
+
 	public override void _Ready()
 	{
 		anim = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
+		navAgent = GetNode<NavigationAgent2D>("NavAgent");
 		PickNewWanderDirection();
 	}
 
@@ -40,28 +45,39 @@ public partial class Ant : CharacterBody2D
 	{
 		switch (currentState)
 		{
-			case AntState.Explore:
+			case AntState.Wander:
 				Wander(delta);
+				CheckFoodNearby();
 				break;
+
+			case AntState.ChercheNourriture:
+				MoveWithAStar(delta);
+				break;
+
+			case AntState.Transporte:
+				TransportFood(delta);
+				break;
+
 			case AntState.Mort:
 				Die();
 				break;
 		}
+
+		LeaveTrail();
 	}
 
+	// -------------------- Wander aléatoire --------------------
 	private void Wander(double delta)
 	{
 		wanderTimer -= (float)delta;
 		if (wanderTimer <= 0f)
 			PickNewWanderDirection();
 
-		Velocity = wanderDirection * speed;
+		Velocity = wanderDirection * speed * 0.5f; // vitesse plus douce
 		MoveAndSlide();
 
 		if (!anim.IsPlaying())
 			anim.Play("walk");
-
-		LeaveTrail();
 	}
 
 	private void PickNewWanderDirection()
@@ -73,22 +89,76 @@ public partial class Ant : CharacterBody2D
 		).Normalized();
 	}
 
-	private void LeaveTrail()
+	// -------------------- Détection de nourriture --------------------
+	private void CheckFoodNearby()
 	{
-		if (pheromoneLayer == null)
+		FoodSpawnManager manager = GetTree().Root.GetNode<FoodSpawnManager>("Game/FoodSpawnManager");
+		if (manager == null) return;
+
+		foreach (var foodPos in manager.GetFoodPositions())
 		{
-			GD.PrintErr("pheromoneLayer est null !");
+			if (GlobalPosition.DistanceTo(foodPos) < 100f) // si proche de la food
+			{
+				GoToFood(foodPos);
+				break;
+			}
+		}
+	}
+
+	// -------------------- A* vers la nourriture --------------------
+	private void MoveWithAStar(double delta)
+	{
+		if (navAgent.IsNavigationFinished())
+		{
+			if (!hasFood)
+			{
+				hasFood = true;
+				currentState = AntState.Transporte;
+			}
 			return;
 		}
 
-		// Coordonnée locale par rapport au TileMapLayer
+		Vector2 nextPos = navAgent.GetNextPathPosition();
+		Vector2 dir = (nextPos - GlobalPosition).Normalized();
+
+		Velocity = dir * speed;
+		MoveAndSlide();
+
+		if (!anim.IsPlaying())
+			anim.Play("walk");
+	}
+
+	public void GoToFood(Vector2 foodPos)
+	{
+		targetFoodPos = foodPos;
+		navAgent.TargetPosition = targetFoodPos;
+		currentState = AntState.ChercheNourriture;
+	}
+
+	private void TransportFood(double delta)
+	{
+		navAgent.TargetPosition = nestPosition;
+		MoveWithAStar(delta);
+
+		if (GlobalPosition.DistanceTo(nestPosition) < 10f)
+		{
+			hasFood = false;
+			currentState = AntState.Wander;
+		}
+	}
+
+	private void LeaveTrail()
+	{
+		if (pheromoneLayer == null)
+			return;
+
 		Vector2 localPos = pheromoneLayer.ToLocal(GlobalPosition);
 		Vector2I cell = pheromoneLayer.LocalToMap(localPos);
-		
-		// Pose directement la tile de l’atlas
+
 		pheromoneLayer.SetCell(cell, 0, pheromoneAtlasCoords, 0);
 		pheromoneLayer.UpdateInternals();
 	}
+
 	private void UpdateSpriteFlip()
 	{
 		if (Velocity.X > 1f)

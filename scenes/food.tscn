@@ -1,0 +1,20 @@
+[gd_scene load_steps=5 format=3 uid="uid://ddi1xw7jvn685"]
+
+[ext_resource type="Script" path="res://scripts/Food.cs" id="1_8ewa5"]
+[ext_resource type="Texture2D" uid="uid://uwbnodaq4afl" path="res://assets/GRASS+.png" id="2_vxymu"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_j8rnf"]
+atlas = ExtResource("2_vxymu")
+region = Rect2(193.278, 211.586, 12.6531, 12.2846)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2ovri"]
+radius = 7.0
+
+[node name="Food" type="Area2D"]
+script = ExtResource("1_8ewa5")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = SubResource("AtlasTexture_j8rnf")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_2ovri")
