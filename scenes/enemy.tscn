@@ -1,0 +1,51 @@
+[gd_scene load_steps=8 format=3 uid="uid://bid267sl531yu"]
+
+[ext_resource type="Script" path="res://scripts/ressources/Enemy.cs" id="1_0ngos"]
+[ext_resource type="Texture2D" uid="uid://bdjvuq0uy4puc" path="res://assets/Bugs.png" id="2_kb2sr"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nuj7u"]
+atlas = ExtResource("2_kb2sr")
+region = Rect2(810, 96, 90, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yj3dc"]
+atlas = ExtResource("2_kb2sr")
+region = Rect2(900, 96, 90, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rfuyd"]
+atlas = ExtResource("2_kb2sr")
+region = Rect2(990, 96, 90, 96)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_n0ud6"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nuj7u")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yj3dc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rfuyd")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 10.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_80j40"]
+radius = 35.1283
+
+[node name="Enemy" type="CharacterBody2D"]
+script = ExtResource("1_0ngos")
+detectionRange = 250.0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_n0ud6")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-4, 23)
+shape = SubResource("CircleShape2D_80j40")
+
+[node name="navAgent" type="NavigationAgent2D" parent="."]

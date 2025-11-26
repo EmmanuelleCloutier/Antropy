@@ -232,4 +232,20 @@ public partial class Ant : CharacterBody2D
 		if (Velocity.X > 1) anim.FlipH = true;
 		else if (Velocity.X < -1) anim.FlipH = false;
 	}
+	
+	//enemi 
+	public void AvoidEnemy(Vector2 enemyPos)
+{
+	// Dodge random
+	Vector2 dir = (GlobalPosition - enemyPos).Normalized();
+	Vector2 dodge = dir + new Vector2(
+		(float)GD.RandRange(-0.5f, 0.5f),
+		(float)GD.RandRange(-0.5f, 0.5f)
+	);
+	Velocity = dodge.Normalized() * speed;
+
+	// Passe en Wander si en mode GoToFood ou CarryFood
+	state = AntState.Wander;
+}
+
 }

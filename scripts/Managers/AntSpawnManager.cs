@@ -57,7 +57,7 @@ public partial class AntSpawnManager : Node2D
 			antNode.GlobalPosition = Vector2.Zero;
 
 		antsParent.AddChild(antNode);
-
+S
 		// ✅ Injection directe des phéromones
 		antNode.Set("pheromoneLayer", pheromoneLayer);
 		antNode.Set("pheromoneAtlasCoords", pheromoneAtlasCoords);

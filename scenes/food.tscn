@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://ddi1xw7jvn685"]
 
-[ext_resource type="Script" path="res://scripts/Food.cs" id="1_8ewa5"]
+[ext_resource type="Script" path="res://scripts/ressources/Food.cs" id="1_8ewa5"]
 [ext_resource type="Texture2D" uid="uid://uwbnodaq4afl" path="res://assets/GRASS+.png" id="2_vxymu"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_j8rnf"]
