@@ -10,19 +10,23 @@ public partial class Nest : Area2D
 		BodyEntered += OnBodyEntered;
 	}
 
-	private async void OnBodyEntered(Node body)
+	private void OnBodyEntered(Node body)
 	{
-		if (body is not Ant ant)
-			return;
+		if (body is not Ant ant) return;
 
-		// On ne s'occupe que des fourmis avec nourriture
 		if (!ant.HasFood())
+		{
+			// Forcer la fourmi à continuer sa route
+			ant.ExitNest();
 			return;
+		}
 
-		// Marque la fourmi comme dans le Nest
 		ant.OnReachNest();
+		StartExitSequence(ant);
+	}
 
-		// Attend un moment avant de la faire sortir
+	private async void StartExitSequence(Ant ant)
+	{
 		await ToSignal(GetTree().CreateTimer(waitTime), "timeout");
 
 		ant.DropFood();

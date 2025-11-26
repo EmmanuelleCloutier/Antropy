@@ -1,4 +1,5 @@
 using Godot;
+using System.Threading.Tasks;
 
 public partial class Ant : CharacterBody2D
 {
@@ -10,43 +11,43 @@ public partial class Ant : CharacterBody2D
 		InNest
 	}
 
-	[Export] protected float speed = 100f;
+	[Export] private float speed = 100f;
 	[Export] private PackedScene foodOnBackScene;
 
 	private AnimatedSprite2D anim;
 	private NavigationAgent2D navAgent;
-	public CollisionShape2D myCollider;
+	private CollisionShape2D myCollider;
 	private Area2D nest;
-	private Vector2 lastNestEntryPosition;
-	private bool navAgentActive = true;
-
 
 	[Export] private TileMapLayer pheromoneLayer;
 	[Export] private Vector2I pheromoneAtlasCoords;
 
-
-	protected AntState state = AntState.Wander;
-
 	private Vector2 wanderDir;
 	private float wanderTimer;
 
-	protected Food targetFood;
-	protected bool hasFood = false;
+	private Food targetFood;
+	private bool hasFood = false;
 	private Node2D foodOnBack;
+
+	private bool navAgentActive = true;
+	private bool isUsingNest = false;
+	private float safeExitDistance = 40f;
+
+	protected AntState state = AntState.Wander;
 
 	public override void _Ready()
 	{
 		anim = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
 		navAgent = GetNode<NavigationAgent2D>("NavAgent");
 		myCollider = GetNode<CollisionShape2D>("CollisionShape2D");
-
 		nest = GetTree().Root.GetNode<Area2D>("Game/Nest");
 
-		PickNewWander();
+		ResetAnt();
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
+		// Movement based on state
 		switch (state)
 		{
 			case AntState.Wander:
@@ -57,50 +58,48 @@ public partial class Ant : CharacterBody2D
 			case AntState.CarryFood:
 				MoveAStar();
 				break;
+
+			case AntState.InNest:
+				Velocity = Vector2.Zero;
+				return; // pas de MoveAndSlide
 		}
 
 		MoveAndSlide();
 		FlipSprite();
 		LeaveTrail();
-
-	}
-	
-	public void SetPheromoneData(TileMapLayer layer, Vector2I coords)
-	{
-		pheromoneLayer = layer;
-		pheromoneAtlasCoords = coords;
 	}
 
-
-	// ----------- Wander -----------
-	void Wander(double delta)
+	// -------------------- Wander --------------------
+	private void Wander(double delta)
 	{
 		wanderTimer -= (float)delta;
 		if (wanderTimer <= 0)
 			PickNewWander();
 
 		Velocity = wanderDir * speed * 0.5f;
-
 		SearchFood();
 	}
 
-	void PickNewWander()
+	private void PickNewWander()
 	{
-		wanderTimer = (float)GD.RandRange(1, 2);
+		wanderTimer = (float)GD.RandRange(1.0f, 2.0f);
 		wanderDir = new Vector2(
-			(float)GD.RandRange(-1, 1),
-			(float)GD.RandRange(-1, 1)
+			(float)GD.RandRange(-1.0f, 1.0f),
+			(float)GD.RandRange(-1.0f, 1.0f)
 		).Normalized();
 	}
 
-	// ---------- Find food ----------
-	void SearchFood()
+	// -------------------- Find food --------------------
+	private void SearchFood()
 	{
+		if (state != AntState.Wander) return;
+
 		var manager = GetTree().Root.GetNode<FoodSpawnManager>("Game/FoodSpawnManager");
 
 		foreach (var f in manager.GetFoods())
 		{
-			if (f == null) continue;
+			if (f == null || !IsInstanceValid(f))
+				continue;
 
 			if (GlobalPosition.DistanceTo(f.GlobalPosition) < 120)
 			{
@@ -112,24 +111,32 @@ public partial class Ant : CharacterBody2D
 		}
 	}
 
-	// ---------- Movement ----------
-void MoveAStar()
-{
-	if (!navAgentActive) return;
-
-	if (navAgent.IsNavigationFinished())
+	// -------------------- Movement --------------------
+	private void MoveAStar()
 	{
-		if (state == AntState.GoToFood && targetFood != null)
-			PickFood();
-		return;
+		if (!navAgentActive)
+		{
+			Velocity = Vector2.Zero;
+			return;
+		}
+
+		if (navAgent.IsNavigationFinished())
+		{
+			if (state == AntState.GoToFood && targetFood != null)
+				PickFood();
+
+			if (state == AntState.CarryFood)
+				Velocity = Vector2.Zero;
+
+			return;
+		}
+
+		Vector2 next = navAgent.GetNextPathPosition();
+		Velocity = (next - GlobalPosition).Normalized() * speed;
 	}
 
-	Vector2 next = navAgent.GetNextPathPosition();
-	Velocity = (next - GlobalPosition).Normalized() * speed;
-}
-
-
-	void PickFood()
+	// -------------------- Pick food --------------------
+	private void PickFood()
 	{
 		if (targetFood == null || !IsInstanceValid(targetFood))
 		{
@@ -143,45 +150,37 @@ void MoveAStar()
 
 		AttachFoodVisual();
 
+		// Ne cible le Nest que si elle a de la nourriture
 		navAgent.TargetPosition = nest.GlobalPosition;
 		state = AntState.CarryFood;
 	}
-	
-private void LeaveTrail()
-{
-	if (pheromoneLayer == null)
-		return;
 
-	// Transforme la position globale de la fourmi en coordonnées locales du TileMapLayer
-	Vector2 localPos = pheromoneLayer.GlobalTransform.AffineInverse() * GlobalPosition;
-	Vector2I cell = pheromoneLayer.LocalToMap(localPos);
-
-	// Pose la phéromone
-	pheromoneLayer.SetCell(cell, 0, pheromoneAtlasCoords, 0);
-}
-
-
-
-
-	// ---------- Called by Nest ----------
-	public bool HasFood() => hasFood;
-
-		public void OnReachNest()
+	// -------------------- Pheromones --------------------
+	private void LeaveTrail()
 	{
-		if (!hasFood) return;
+		if (pheromoneLayer == null) return;
 
-		lastNestEntryPosition = GlobalPosition;
-		state = AntState.InNest;
-		Velocity = Vector2.Zero;
+		Vector2 localPos = pheromoneLayer.GlobalTransform.AffineInverse() * GlobalPosition;
+		Vector2I cell = pheromoneLayer.LocalToMap(localPos);
 
-		// Désactive le collider de manière différée
-		myCollider.CallDeferred("set_disabled", true);
-
-		Visible = false;
+		pheromoneLayer.SetCell(cell, 0, pheromoneAtlasCoords, 0);
 	}
 
+	// -------------------- Nest logic --------------------
+	public bool HasFood() => hasFood;
 
+	public void OnReachNest()
+	{
+		if (!hasFood || isUsingNest) return;
 
+		isUsingNest = true;
+		state = AntState.InNest;
+		Velocity = Vector2.Zero;
+		navAgentActive = false;
+
+		myCollider.CallDeferred(CollisionShape2D.MethodName.SetDisabled, true);
+		Visible = false;
+	}
 
 	public void DropFood()
 	{
@@ -192,36 +191,34 @@ private void LeaveTrail()
 		hasFood = false;
 	}
 
-public void ExitNest()
-{
-	Visible = true;
+	public async void ExitNest()
+	{
+		// Réinitialisation complète
+		ResetAnt();
 
-	// Position de sortie avec petit offset
-	Vector2 exitOffset = new Vector2((float)GD.RandRange(-2, 2), (float)GD.RandRange(-2, 2));
-	GlobalPosition = new Vector2(10, 10) + exitOffset;
+		// Repositionne hors du Nest
+		Vector2 dir = new Vector2((float)GD.RandRange(-1, 1), (float)GD.RandRange(-1, 1)).Normalized();
+		GlobalPosition = nest.GlobalPosition + dir * safeExitDistance;
 
-	Velocity = Vector2.Zero;
-	state = AntState.Wander;
+		navAgentActive = false;
+		await ToSignal(GetTree().CreateTimer(0.2f), "timeout");
+		myCollider.CallDeferred(CollisionShape2D.MethodName.SetDisabled, false);
+		navAgentActive = true;
+	}
 
-	// Désactiver temporairement le navAgent pour éviter les déplacements forcés
-	navAgentActive = false;
+	private void ResetAnt()
+	{
+		hasFood = false;
+		targetFood = null;
+		state = AntState.Wander;
+		navAgent.TargetPosition = GlobalPosition;
+		isUsingNest = false;
+		PickNewWander();
+		Visible = true;
+	}
 
-	GetTree().CreateTimer(2f).Timeout += () =>
-{
-	myCollider.CallDeferred("set_disabled", false);
-	navAgentActive = true;
-	PickNewWander();
-};
-
-}
-
-
-
-
-
-
-	// ---------- Visual ----------
-	void AttachFoodVisual()
+	// -------------------- Visual --------------------
+	private void AttachFoodVisual()
 	{
 		if (foodOnBackScene == null) return;
 
@@ -230,9 +227,9 @@ public void ExitNest()
 		foodOnBack.Position = new Vector2(0, -10);
 	}
 
-	void FlipSprite()
+	private void FlipSprite()
 	{
 		if (Velocity.X > 1) anim.FlipH = true;
-		if (Velocity.X < -1) anim.FlipH = false;
+		else if (Velocity.X < -1) anim.FlipH = false;
 	}
 }

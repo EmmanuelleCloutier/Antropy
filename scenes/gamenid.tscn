@@ -724,7 +724,7 @@ atlas = ExtResource("3_7w0mj")
 region = Rect2(175.538, 192.174, 17.4756, 16.2787)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_yb4q4"]
-radius = 3.34996
+radius = 2.68742
 
 [node name="Game" type="Node2D"]
 
@@ -764,6 +764,7 @@ navigation_polygon = SubResource("NavigationPolygon_rapca")
 
 [node name="Nest" type="Area2D" parent="."]
 scale = Vector2(3, 3)
+collision_layer = 2
 script = ExtResource("5_mxj55")
 
 [node name="Sprite2D" type="Sprite2D" parent="Nest"]

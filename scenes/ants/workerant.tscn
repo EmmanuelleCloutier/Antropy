@@ -35,9 +35,9 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1gnvd"]
 size = Vector2(84, 46)
 
-[node name="Ant" type="CharacterBody2D"]
+[node name="workerant" type="CharacterBody2D"]
 scale = Vector2(0.25, 0.25)
-collision_mask = 0
+collision_mask = 4
 script = ExtResource("1_tpyue")
 speed = 80.0
 

@@ -1,33 +1,34 @@
 using Godot;
-using System;
 using System.Collections.Generic;
 
 public partial class AntSpawnManager : Node2D
 {
 	[Export] public PackedScene antScene;
 	[Export] public int initialAntCount = 5;
-	[Export] public TileMapLayer pheromoneLayer; 
-	[Export] public Vector2I pheromoneAtlasCoords = new Vector2I(5, 7); 
+
+	[Export] public TileMapLayer pheromoneLayer;
+	[Export] public Vector2I pheromoneAtlasCoords = new Vector2I(5, 7);
+
 	[Export] public Node2D nest;
 
 	private Node antsParent;
-	private List<Ant> ants = new List<Ant>();
+	private List<Ant> ants = new();
 
-	[Signal] public delegate void AntSpawnedEventHandler(Ant ant); // <-- correction
+	[Signal] public delegate void AntSpawnedEventHandler(Ant ant);
 
 	public override void _Ready()
 	{
-		GD.Print("AntSpawnManager: _Ready() called");
 		antsParent = GetNode<Node>("../Ants");
+
 		if (antsParent == null)
 		{
-			GD.PrintErr("AntSpawnManager: Ants node not found as a sibling!");
+			GD.PrintErr("Ants node not found!");
 			return;
 		}
 
 		if (antScene == null)
 		{
-			GD.PrintErr("AntSpawnManager: antScene is not assigned!");
+			GD.PrintErr("antScene not assigned!");
 			return;
 		}
 
@@ -40,33 +41,35 @@ public partial class AntSpawnManager : Node2D
 			SpawnAnt();
 	}
 
-public Ant SpawnAnt(Vector2? position = null)
-{
-	if (antScene == null || antsParent == null) return null;
-
-	Node2D antNode = antScene.Instantiate<Node2D>();
-	if (position.HasValue)
-		antNode.GlobalPosition = position.Value;
-	else if (nest != null)
-		antNode.GlobalPosition = nest.GlobalPosition;
-	else
-		antNode.GlobalPosition = Vector2.Zero;
-
-	antsParent.AddChild(antNode);
-
-	if (antNode is Ant antInstance)
+	public Ant SpawnAnt(Vector2? position = null)
 	{
-		antInstance.SetPheromoneData(pheromoneLayer, pheromoneAtlasCoords);
-		ants.Add(antInstance);
-		antInstance.AddToGroup("Ants");
+		if (antScene == null || antsParent == null)
+			return null;
 
-		// Fais “spawn safe” avec pause 2s
-		antInstance.ExitNest();
+		var antNode = antScene.Instantiate<Ant>();
 
-		EmitSignal("AntSpawned", antInstance);
-		return antInstance;
+		// Position de départ
+		if (position.HasValue)
+			antNode.GlobalPosition = position.Value;
+		else if (nest != null)
+			antNode.GlobalPosition = nest.GlobalPosition;
+		else
+			antNode.GlobalPosition = Vector2.Zero;
+
+		antsParent.AddChild(antNode);
+
+		// ✅ Injection directe des phéromones
+		antNode.Set("pheromoneLayer", pheromoneLayer);
+		antNode.Set("pheromoneAtlasCoords", pheromoneAtlasCoords);
+
+		antNode.AddToGroup("Ants");
+
+		// Spawn safe : commence hors du nid
+		antNode.ExitNest();
+
+		ants.Add(antNode);
+
+		EmitSignal(SignalName.AntSpawned, antNode);
+		return antNode;
 	}
-
-	return null;
-}
 }
