@@ -1,5 +1,4 @@
 using Godot;
-using System;
 
 public partial class SoldierAnt : Ant
 {
@@ -19,12 +18,12 @@ public partial class SoldierAnt : Ant
 
 			if (GlobalPosition.DistanceTo(targetEnemy.GlobalPosition) < 20f)
 			{
-				targetEnemy.TakeDamage(1);
+				//targetEnemy.TakeDamage(1);
 			}
 		}
 		else
 		{
-			base._PhysicsProcess(delta);
+			base._PhysicsProcess(delta); // Wander si pas de cible
 		}
 
 		MoveAndSlide();

@@ -17,7 +17,6 @@ public partial class Enemy : CharacterBody2D
 	private float wanderTimer;
 
 	private EnemyState state = EnemyState.Wander;
-	private Ant targetAnt;
 	private AnimatedSprite2D anim;
 
 	public override void _Ready()
@@ -39,10 +38,9 @@ public partial class Enemy : CharacterBody2D
 		{
 			case EnemyState.Wander:
 				Wander(delta);
-				DetectAnt();
 				break;
 			case EnemyState.Attack:
-				Attack();
+				// Rien pour l'instant
 				break;
 		}
 
@@ -66,46 +64,5 @@ public partial class Enemy : CharacterBody2D
 			(float)GD.RandRange(-1.0f, 1.0f),
 			(float)GD.RandRange(-1.0f, 1.0f)
 		).Normalized();
-	}
-
-	private void DetectAnt()
-	{
-		var ants = GetTree().GetNodesInGroup("Ants");
-		foreach (Ant ant in ants)
-		{
-			if (ant == null || !GodotObject.IsInstanceValid(ant)) continue;
-
-			if (ant.GlobalPosition.DistanceTo(GlobalPosition) < detectionRange)
-			{
-				targetAnt = ant;
-				state = EnemyState.Attack;
-				ant.AlertSoldiers(this); // spawn soldats quand détecté
-				break;
-			}
-		}
-	}
-
-	private void Attack()
-	{
-		if (targetAnt == null || !GodotObject.IsInstanceValid(targetAnt))
-		{
-			state = EnemyState.Wander;
-			targetAnt = null;
-			return;
-		}
-
-		Vector2 dir = (targetAnt.GlobalPosition - GlobalPosition).Normalized();
-		Velocity = dir * speed;
-
-		if (GlobalPosition.DistanceTo(targetAnt.GlobalPosition) < 20f)
-		{
-			targetAnt.AvoidEnemy(GlobalPosition);
-		}
-	}
-
-	public void TakeDamage(int dmg)
-	{
-		// À implémenter selon ton système de vie
-		GD.Print($"Enemy took {dmg} damage!");
 	}
 }

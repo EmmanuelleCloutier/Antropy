@@ -12,24 +12,19 @@ public partial class Nest : Area2D
 
 	private void OnBodyEntered(Node body)
 	{
-		if (body is not Ant ant) return;
+		// Ne gérer que les WorkerAnt
+		if (body is not WorkerAnt worker) return;
 
-		if (!ant.HasFood())
-		{
-			// Forcer la fourmi à continuer sa route
-			ant.ExitNest();
-			return;
-		}
-
-		ant.OnReachNest();
-		StartExitSequence(ant);
+		// ExitNest direct, plus besoin de HasFood ni DropFood
+		worker.OnReachNest();
+		StartExitSequence(worker);
 	}
 
-	private async void StartExitSequence(Ant ant)
+	private async void StartExitSequence(WorkerAnt worker)
 	{
 		await ToSignal(GetTree().CreateTimer(waitTime), "timeout");
 
-		ant.DropFood();
-		ant.ExitNest();
+		// Juste faire sortir la fourmi, plus de DropFood
+		worker.ExitNest();
 	}
 }
