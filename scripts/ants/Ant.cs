@@ -10,7 +10,6 @@ public partial class Ant : CharacterBody2D
 		InNest
 	}
 
-
 	[Export] protected float speed = 100f;
 	[Export] public TileMapLayer pheromoneLayer;
 	[Export] public Vector2I pheromoneAtlasCoords;
@@ -124,7 +123,4 @@ public partial class Ant : CharacterBody2D
 		// On définit simplement la cible
 		navAgent.TargetPosition = targetPosition;
 	}
-
-
-
 }

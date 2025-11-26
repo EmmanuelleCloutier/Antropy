@@ -36,7 +36,6 @@ public partial class FoodSpawnManager : Node2D
 		float y = (float)GD.RandRange(spawnMin.Y, spawnMax.Y);
 		food.GlobalPosition = new Vector2(x, y);
 
-		// CONNECTE AVANT DE L'AJOUTER
 		food.FoodEaten += OnFoodEaten;
 
 		AddChild(food);
@@ -48,8 +47,6 @@ public partial class FoodSpawnManager : Node2D
 	{
 		if (foods.Contains(food))
 			foods.Remove(food);
-
-		// force un nouveau spawn
 		CallDeferred(nameof(SpawnFood));
 	}
 
