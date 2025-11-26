@@ -1,0 +1,56 @@
+[gd_scene load_steps=8 format=3 uid="uid://bm3suv1sai7oy"]
+
+[ext_resource type="Script" path="res://scripts/ants/WorkerAnt.cs" id="1_tf7hv"]
+[ext_resource type="Texture2D" uid="uid://bo7wgxx2sov1g" path="res://assets/Ants.png" id="2_jqy1k"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_d1lqu"]
+atlas = ExtResource("2_jqy1k")
+region = Rect2(540, 96, 90, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3woa1"]
+atlas = ExtResource("2_jqy1k")
+region = Rect2(630, 96, 90, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_g3xfg"]
+atlas = ExtResource("2_jqy1k")
+region = Rect2(720, 96, 90, 96)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_lduwd"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d1lqu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3woa1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_g3xfg")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 10.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1gnvd"]
+size = Vector2(84, 46)
+
+[node name="soldierant" type="CharacterBody2D"]
+scale = Vector2(0.25, 0.25)
+collision_mask = 4
+script = ExtResource("1_tf7hv")
+speed = 120.0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -26.5)
+sprite_frames = SubResource("SpriteFrames_lduwd")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -22.5)
+shape = SubResource("RectangleShape2D_1gnvd")
+
+[node name="NavAgent" type="NavigationAgent2D" parent="."]
+path_desired_distance = 4.0
+target_desired_distance = 4.0

@@ -11,8 +11,10 @@ public partial class Ant : CharacterBody2D
 		InNest
 	}
 
-	[Export] private float speed = 100f;
+	[Export] protected float speed = 100f;
 	[Export] private PackedScene foodOnBackScene;
+	[Export] public NodePath spawnManagerPath;
+	private AntSpawnManager spawnManager;
 
 	private AnimatedSprite2D anim;
 	private NavigationAgent2D navAgent;
@@ -42,6 +44,9 @@ public partial class Ant : CharacterBody2D
 		myCollider = GetNode<CollisionShape2D>("CollisionShape2D");
 		nest = GetTree().Root.GetNode<Area2D>("Game/Nest");
 
+		if (spawnManagerPath != null)
+			spawnManager = GetNode<AntSpawnManager>(spawnManagerPath);
+
 		ResetAnt();
 	}
 
@@ -53,15 +58,13 @@ public partial class Ant : CharacterBody2D
 			case AntState.Wander:
 				Wander(delta);
 				break;
-
 			case AntState.GoToFood:
 			case AntState.CarryFood:
 				MoveAStar();
 				break;
-
 			case AntState.InNest:
 				Velocity = Vector2.Zero;
-				return; // pas de MoveAndSlide
+				return;
 		}
 
 		MoveAndSlide();
@@ -69,7 +72,6 @@ public partial class Ant : CharacterBody2D
 		LeaveTrail();
 	}
 
-	// -------------------- Wander --------------------
 	private void Wander(double delta)
 	{
 		wanderTimer -= (float)delta;
@@ -89,7 +91,6 @@ public partial class Ant : CharacterBody2D
 		).Normalized();
 	}
 
-	// -------------------- Find food --------------------
 	private void SearchFood()
 	{
 		if (state != AntState.Wander) return;
@@ -98,8 +99,7 @@ public partial class Ant : CharacterBody2D
 
 		foreach (var f in manager.GetFoods())
 		{
-			if (f == null || !IsInstanceValid(f))
-				continue;
+			if (f == null || !IsInstanceValid(f)) continue;
 
 			if (GlobalPosition.DistanceTo(f.GlobalPosition) < 120)
 			{
@@ -111,7 +111,6 @@ public partial class Ant : CharacterBody2D
 		}
 	}
 
-	// -------------------- Movement --------------------
 	private void MoveAStar()
 	{
 		if (!navAgentActive)
@@ -135,7 +134,6 @@ public partial class Ant : CharacterBody2D
 		Velocity = (next - GlobalPosition).Normalized() * speed;
 	}
 
-	// -------------------- Pick food --------------------
 	private void PickFood()
 	{
 		if (targetFood == null || !IsInstanceValid(targetFood))
@@ -149,14 +147,11 @@ public partial class Ant : CharacterBody2D
 		targetFood = null;
 
 		AttachFoodVisual();
-
-		// Ne cible le Nest que si elle a de la nourriture
 		navAgent.TargetPosition = nest.GlobalPosition;
 		state = AntState.CarryFood;
 	}
 
-	// -------------------- Pheromones --------------------
-	private void LeaveTrail()
+	protected void LeaveTrail()
 	{
 		if (pheromoneLayer == null) return;
 
@@ -166,7 +161,6 @@ public partial class Ant : CharacterBody2D
 		pheromoneLayer.SetCell(cell, 0, pheromoneAtlasCoords, 0);
 	}
 
-	// -------------------- Nest logic --------------------
 	public bool HasFood() => hasFood;
 
 	public void OnReachNest()
@@ -193,10 +187,8 @@ public partial class Ant : CharacterBody2D
 
 	public async void ExitNest()
 	{
-		// Réinitialisation complète
 		ResetAnt();
 
-		// Repositionne hors du Nest
 		Vector2 dir = new Vector2((float)GD.RandRange(-1, 1), (float)GD.RandRange(-1, 1)).Normalized();
 		GlobalPosition = nest.GlobalPosition + dir * safeExitDistance;
 
@@ -217,7 +209,6 @@ public partial class Ant : CharacterBody2D
 		Visible = true;
 	}
 
-	// -------------------- Visual --------------------
 	private void AttachFoodVisual()
 	{
 		if (foodOnBackScene == null) return;
@@ -227,25 +218,27 @@ public partial class Ant : CharacterBody2D
 		foodOnBack.Position = new Vector2(0, -10);
 	}
 
-	private void FlipSprite()
+	protected void FlipSprite()
 	{
 		if (Velocity.X > 1) anim.FlipH = true;
 		else if (Velocity.X < -1) anim.FlipH = false;
 	}
-	
-	//enemi 
+
 	public void AvoidEnemy(Vector2 enemyPos)
-{
-	// Dodge random
-	Vector2 dir = (GlobalPosition - enemyPos).Normalized();
-	Vector2 dodge = dir + new Vector2(
-		(float)GD.RandRange(-0.5f, 0.5f),
-		(float)GD.RandRange(-0.5f, 0.5f)
-	);
-	Velocity = dodge.Normalized() * speed;
+	{
+		Vector2 dir = (GlobalPosition - enemyPos).Normalized();
+		Vector2 dodge = dir + new Vector2(
+			(float)GD.RandRange(-0.5f, 0.5f),
+			(float)GD.RandRange(-0.5f, 0.5f)
+		);
+		Velocity = dodge.Normalized() * speed;
 
-	// Passe en Wander si en mode GoToFood ou CarryFood
-	state = AntState.Wander;
-}
+		state = AntState.Wander;
+	}
 
+	public void AlertSoldiers(Enemy enemy)
+	{
+		if (spawnManager == null) return;
+		spawnManager.SpawnSoldiers(GlobalPosition, enemy, 10);
+	}
 }

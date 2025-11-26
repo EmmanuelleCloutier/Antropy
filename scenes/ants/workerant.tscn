@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://bc1u1upirmkf5"]
+[gd_scene load_steps=14 format=3 uid="uid://bc1u1upirmkf5"]
 
 [ext_resource type="Script" path="res://scripts/ants/WorkerAnt.cs" id="1_tpyue"]
 [ext_resource type="Texture2D" uid="uid://bo7wgxx2sov1g" path="res://assets/Ants.png" id="3_aro6g"]
@@ -15,6 +15,30 @@ region = Rect2(90, 109, 90, 109)
 atlas = ExtResource("3_aro6g")
 region = Rect2(180, 109, 90, 109)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_nasld"]
+atlas = ExtResource("3_aro6g")
+region = Rect2(540, 96, 90, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4hcs6"]
+atlas = ExtResource("3_aro6g")
+region = Rect2(630, 96, 90, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u68q8"]
+atlas = ExtResource("3_aro6g")
+region = Rect2(720, 96, 90, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cw7sb"]
+atlas = ExtResource("3_aro6g")
+region = Rect2(540, 96, 90, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bpl4h"]
+atlas = ExtResource("3_aro6g")
+region = Rect2(630, 96, 90, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lnyct"]
+atlas = ExtResource("3_aro6g")
+region = Rect2(720, 96, 90, 96)
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_lduwd"]
 animations = [{
 "frames": [{
@@ -26,6 +50,24 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_21egh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nasld")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4hcs6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_u68q8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cw7sb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bpl4h")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lnyct")
 }],
 "loop": true,
 "name": &"idle",

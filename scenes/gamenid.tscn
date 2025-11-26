@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://dlpogihrck58q"]
+[gd_scene load_steps=19 format=3 uid="uid://dlpogihrck58q"]
 
 [ext_resource type="PackedScene" uid="uid://bjl3dq11lk6b" path="res://scenes/ants/ant.tscn" id="1_c18sl"]
 [ext_resource type="Script" path="res://scripts/CameraController.cs" id="2_t1gth"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://ddi1xw7jvn685" path="res://scenes/food.tscn" id="5_rdmnu"]
 [ext_resource type="Script" path="res://scripts/Managers/AntSpawnManager.cs" id="7_u26l2"]
 [ext_resource type="PackedScene" uid="uid://bc1u1upirmkf5" path="res://scenes/ants/workerant.tscn" id="8_reaiy"]
+[ext_resource type="PackedScene" uid="uid://bm3suv1sai7oy" path="res://scenes/ants/soldierant.tscn" id="9_dquga"]
 [ext_resource type="Script" path="res://scripts/Managers/EnemySpawnManager.cs" id="9_pywxm"]
 [ext_resource type="PackedScene" uid="uid://bid267sl531yu" path="res://scenes/enemy.tscn" id="10_xabri"]
 
@@ -778,6 +779,7 @@ spawnMax = Vector2(500, 500)
 [node name="AntSpawnManager" type="Node2D" parent="." node_paths=PackedStringArray("pheromoneLayer", "nest")]
 script = ExtResource("7_u26l2")
 antScene = ExtResource("8_reaiy")
+soldierAntScene = ExtResource("9_dquga")
 pheromoneLayer = NodePath("../Pheromones")
 nest = NodePath("../Nest")
 

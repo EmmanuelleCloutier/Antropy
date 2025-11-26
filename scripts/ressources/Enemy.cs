@@ -18,7 +18,6 @@ public partial class Enemy : CharacterBody2D
 
 	private EnemyState state = EnemyState.Wander;
 	private Ant targetAnt;
-
 	private AnimatedSprite2D anim;
 
 	public override void _Ready()
@@ -30,12 +29,9 @@ public partial class Enemy : CharacterBody2D
 
 	private void FlipSprite()
 	{
-		if (Velocity.X > 1) 
-			anim.FlipH = true; 
-		else if (Velocity.X < -1) 
-			anim.FlipH = false;  
+		if (Velocity.X > 1) anim.FlipH = true;
+		else if (Velocity.X < -1) anim.FlipH = false;
 	}
-
 
 	public override void _PhysicsProcess(double delta)
 	{
@@ -52,7 +48,6 @@ public partial class Enemy : CharacterBody2D
 
 		MoveAndSlide();
 		FlipSprite();
-
 	}
 
 	private void Wander(double delta)
@@ -73,40 +68,44 @@ public partial class Enemy : CharacterBody2D
 		).Normalized();
 	}
 
-private void DetectAnt()
-{
-	var ants = GetTree().GetNodesInGroup("Ants");
-	foreach (Ant ant in ants)
+	private void DetectAnt()
 	{
-		if (ant == null || !GodotObject.IsInstanceValid(ant)) 
-			continue;
-
-		if (ant.GlobalPosition.DistanceTo(GlobalPosition) < detectionRange)
+		var ants = GetTree().GetNodesInGroup("Ants");
+		foreach (Ant ant in ants)
 		{
-			targetAnt = ant;
-			state = EnemyState.Attack;
-			break;
+			if (ant == null || !GodotObject.IsInstanceValid(ant)) continue;
+
+			if (ant.GlobalPosition.DistanceTo(GlobalPosition) < detectionRange)
+			{
+				targetAnt = ant;
+				state = EnemyState.Attack;
+				ant.AlertSoldiers(this); // spawn soldats quand détecté
+				break;
+			}
 		}
 	}
-}
 
-private void Attack()
-{
-	if (targetAnt == null || !GodotObject.IsInstanceValid(targetAnt))
+	private void Attack()
 	{
-		state = EnemyState.Wander;
-		targetAnt = null;
-		return;
+		if (targetAnt == null || !GodotObject.IsInstanceValid(targetAnt))
+		{
+			state = EnemyState.Wander;
+			targetAnt = null;
+			return;
+		}
+
+		Vector2 dir = (targetAnt.GlobalPosition - GlobalPosition).Normalized();
+		Velocity = dir * speed;
+
+		if (GlobalPosition.DistanceTo(targetAnt.GlobalPosition) < 20f)
+		{
+			targetAnt.AvoidEnemy(GlobalPosition);
+		}
 	}
 
-	// Déplacement vers la fourmi
-	Vector2 dir = (targetAnt.GlobalPosition - GlobalPosition).Normalized();
-	Velocity = dir * speed;
-
-	if (GlobalPosition.DistanceTo(targetAnt.GlobalPosition) < 20f)
+	public void TakeDamage(int dmg)
 	{
-		targetAnt.AvoidEnemy(GlobalPosition);
+		// À implémenter selon ton système de vie
+		GD.Print($"Enemy took {dmg} damage!");
 	}
-}
-
 }
