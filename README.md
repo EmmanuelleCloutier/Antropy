@@ -145,11 +145,5 @@ A semi-transparent 2D overlay showing pheromone intensity.
 
 ---
 
-##  Author
-**Emmanuelle Cloutier**  
- Simulation & AI Enthusiast  
-
-
----
 
 
